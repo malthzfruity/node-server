@@ -1,21 +1,22 @@
 const express = require('express');
 const bodyParser= require('body-parser');
-const app = express();
 const fs = require('fs');
-var cors = require('cors');
+
+const app = express();
+const cors = require('cors');
+const parser = bodyParser.urlencoded({ extended: true });
 
 var users = [];
 
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
 app.listen(3000, function() {
+    users = getUserData();
     console.log('listening on 3000');
 });
 
 app.get('/', function(req, res){
-    const users = getUserData();
-    res.send(users);
+    res.json({message: "Welcome to this API :D"});
 });
 
 app.get('/users', function(req, res){
@@ -23,21 +24,21 @@ app.get('/users', function(req, res){
     res.send(users);
 });
 
-app.post('/addUser', (req, res) => {
+app.post('/users', parser, (req, res) => {
     users.push(req.body);
     saveUserData(users);
 
     res.send("Den er lagt op :)");
 });
 
-app.delete('/users/:id', function(req, res){
+app.delete('/users/:id', parser, function(req, res){
     const person = users[req.params.id];
     if(!person){
         res.sendStatus(404);
     }
     delete users[req.params.id];
     saveUserData(users);
-    res.sendStatus(200);
+    res.status(200).json({message: "removed", user: person});
 });
 
 /*File system*/
