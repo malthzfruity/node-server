@@ -10,17 +10,17 @@ var users = [];
 
 app.use(cors());
 
-app.listen(3000, function() {
-    users = getUserData();
+app.listen(3000, () => {
+    getUserData();
     console.log('listening on 3000');
 });
 
-app.get('/', function(req, res){
+app.get('/', (req, res) => {
     res.json({message: "Welcome to this API :D"});
 });
 
-app.get('/users', function(req, res){
-    users = getUserData();
+app.get('/users', (req, res) => {
+    getUserData();
     res.send(users);
 });
 
@@ -28,33 +28,51 @@ app.post('/users', parser, (req, res) => {
     users.push(req.body);
     saveUserData(users);
 
-    res.send("Den er lagt op :)");
+    res.json({message: "success", person: getById(users, req.body.id)});
 });
 
-app.delete('/users/:id', parser, function(req, res){
-    const person = users[req.params.id];
+app.get('/users/:id', parser, (req, res) => {
+    const person = getById(users, req.params.id);
     if(!person){
         res.sendStatus(404);
+    } else {
+        res.status(200).json(person);
     }
-    delete users[req.params.id];
-    saveUserData(users);
-    res.status(200).json({message: "removed", user: person});
+});
+
+app.delete('/users/:id', parser, (req, res) => {
+    const person = removeEntryById(users, req.params.id);
+    if(!person){
+        res.sendStatus(404);
+    } else {
+        res.status(200).json({message: "removed", user: person});
+    }
 });
 
 /*File system*/
 const getUserData = () => {
-    const jsonData = fs.readFileSync('users.json');
-    return JSON.parse(jsonData);
+    users = JSON.parse(fs.readFileSync('users.json'));
 };
 
 const saveUserData = (data) => {
     const stringifyData = JSON.stringify(data);
     fs.writeFileSync('users.json', stringifyData);
+    getUserData();
 };
 
 /*Helper functions*/
+const getById = (list, id) => {
+    return list.find(item => item.id == id);
+};
+
+const removeEntryById = (list, id) => {
+    const removed = list.splice(list.findIndex(item => item.id == id), 1);
+    if (removed) saveUserData(users);
+    return removed;
+};
+
 // FIXME: Apply this function
-//   Also, what is this function meant for? removing empty objects from the list?
+//   Also, what is this function meant for? removing empty objects from the list(array)?
 const filterData = (data) => {
      return data.filter(function (el) {
         return el != null;
