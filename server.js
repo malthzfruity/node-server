@@ -53,6 +53,8 @@ const saveUserData = (data) => {
 };
 
 /*Helper functions*/
+// FIXME: Apply this function
+//   Also, what is this function ment for? removing empty objects from the list?
 const filterData = (data) => {
      return data.filter(function (el) {
         return el != null;
